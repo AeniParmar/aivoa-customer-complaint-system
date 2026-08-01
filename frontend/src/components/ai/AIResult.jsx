@@ -7,7 +7,13 @@ import {
     Typography,
 } from "@mui/material";
 
-function AIResult({ result }) {
+import { useSelector } from "react-redux";
+
+function AIResult() {
+
+    const result = useSelector(
+        (state) => state.complaint.aiResult
+    );
 
     if (!result) {
         return (
@@ -59,6 +65,7 @@ function AIResult({ result }) {
                 </Typography>
 
                 <Box>
+
                     <Typography mb={1}>
                         <b>Category</b>
                     </Typography>
@@ -67,9 +74,11 @@ function AIResult({ result }) {
                         label={result.category}
                         color="primary"
                     />
+
                 </Box>
 
                 <Box>
+
                     <Typography mb={1}>
                         <b>Severity</b>
                     </Typography>
@@ -78,6 +87,7 @@ function AIResult({ result }) {
                         label={result.severity}
                         color="warning"
                     />
+
                 </Box>
 
                 <Box>

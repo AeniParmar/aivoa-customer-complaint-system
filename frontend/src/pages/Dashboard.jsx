@@ -10,19 +10,16 @@ import DashboardStats from "../components/stats/DashboardStats";
 
 function Dashboard() {
 
-    const [aiResult, setAIResult] = useState(null);
-
-    console.log("Dashboard aiResult:", aiResult);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     return (
+
         <Layout>
 
-            <DashboardStats />
-            
-            {/* Top Section */}
+            <DashboardStats refreshTrigger={refreshTrigger} />
+
             <Grid container spacing={3}>
 
-                {/* Complaint Form */}
                 <Grid size={{ xs: 12, md: 7 }}>
 
                     <Paper
@@ -32,14 +29,15 @@ function Dashboard() {
                             minHeight: "700px",
                         }}
                     >
+
                         <ComplaintForm
-                            setAIResult={setAIResult}
+                            setRefreshTrigger={setRefreshTrigger}
                         />
+
                     </Paper>
 
                 </Grid>
 
-                {/* AI Analysis */}
                 <Grid size={{ xs: 12, md: 5 }}>
 
                     <Paper
@@ -49,16 +47,14 @@ function Dashboard() {
                             minHeight: "700px",
                         }}
                     >
-                        <AIResult
-                            result={aiResult}
-                        />
+
+                        <AIResult />
+
                     </Paper>
 
                 </Grid>
 
             </Grid>
-
-            {/* Bottom Section */}
 
             <Paper
                 elevation={3}
@@ -68,12 +64,16 @@ function Dashboard() {
                 }}
             >
 
-                <ComplaintHistory />
+                <ComplaintHistory
+                    refreshTrigger={refreshTrigger}
+                />
 
             </Paper>
 
         </Layout>
+
     );
+
 }
 
 export default Dashboard;

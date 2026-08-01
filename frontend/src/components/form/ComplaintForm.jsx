@@ -1,26 +1,37 @@
 import { useState } from "react";
-
+import { useDispatch, useSelector } from "react-redux";
 import {
+    clearAIResult,
+    setAIResult,
+} from "../../redux/complaintSlice";
+import {
+    Alert,
     Box,
     Button,
     Divider,
+    Snackbar,
     Stack,
     TextField,
     Typography,
 } from "@mui/material";
-
 import { analyzeComplaint } from "../../services/aiService";
 import { saveComplaint } from "../../services/complaintService";
 import PDFUploader from "./PDFUploader";
-
-function ComplaintForm({ setAIResult }) {
-
+function ComplaintForm({
+    setRefreshTrigger,
+}) {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-
-    const [analysisResult, setAnalysisResult] = useState(null);
+    const dispatch = useDispatch();
+    const analysisResult = useSelector(
+        (state) => state.complaint.aiResult
+    );
     const [pdfAnalyzed, setPdfAnalyzed] = useState(false);
-
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success",
+    });
     const [formData, setFormData] = useState({
         customer_name: "",
         customer_email: "",
@@ -30,79 +41,56 @@ function ComplaintForm({ setAIResult }) {
         quantity: "",
         complaint_description: "",
     });
-
     const handleChange = (event) => {
-
         setFormData({
             ...formData,
             [event.target.name]: event.target.value,
         });
-
         if (pdfAnalyzed) {
             setPdfAnalyzed(false);
         }
-
     };
-
     const handleAnalyze = async () => {
-
         try {
-
             setLoading(true);
-
             const prompt = `
 Customer Name: ${formData.customer_name}
-
 Customer Email: ${formData.customer_email}
-
 Customer Phone: ${formData.customer_phone}
-
 Product Name: ${formData.product_name}
-
 Batch Number: ${formData.batch_number}
-
 Quantity: ${formData.quantity}
-
 Complaint Description:
 ${formData.complaint_description}
 `;
-
             const result = await analyzeComplaint(prompt);
-
             console.log("AI Result:", result);
-
-            setAIResult(result);
-            setAnalysisResult(result);
-
+            dispatch(setAIResult(result));
         } catch (error) {
-
             console.error(error);
-
             if (error.response) {
                 console.log(error.response.data);
             }
-
-            alert("AI Analysis Failed");
-
+            setSnackbar({
+                open: true,
+                message: "AI Analysis Failed",
+                severity: "error",
+            });
         } finally {
-
             setLoading(false);
-
         }
-
     };
-
     const handleSave = async () => {
-
         if (!analysisResult) {
-            alert("Please analyze the complaint before saving.");
+            setSnackbar({
+                open: true,
+                message: "Please analyze the complaint before saving.",
+                severity: "warning",
+            });
             return;
         }
-
         try {
-
             setSaving(true);
-
             const complaintData = {
                 customer_name: formData.customer_name,
                 customer_email: formData.customer_email,
@@ -110,19 +98,19 @@ ${formData.complaint_description}
                 batch_number: formData.batch_number,
                 quantity: Number(formData.quantity),
                 complaint_description: formData.complaint_description,
-
                 category: analysisResult.category || null,
                 severity: analysisResult.severity || null,
                 risk_assessment: analysisResult.risk_assessment || null,
                 status: "open",
             };
-
             const savedComplaint = await saveComplaint(complaintData);
-
             console.log("Saved Complaint:", savedComplaint);
-
-            alert("Complaint saved successfully!");
-
+            setRefreshTrigger((prev) => prev + 1);
+            setSnackbar({
+                open: true,
+                message: "Complaint saved successfully!",
+                severity: "success",
+            });
             setFormData({
                 customer_name: "",
                 customer_email: "",
@@ -132,33 +120,57 @@ ${formData.complaint_description}
                 quantity: "",
                 complaint_description: "",
             });
-
-            setAnalysisResult(null);
-            setAIResult(null);
+            dispatch(clearAIResult());
             setPdfAnalyzed(false);
-
         } catch (error) {
-
             console.error(error);
-
             if (error.response) {
                 console.log(error.response.data);
-                alert(error.response.data.detail || "Failed to save complaint.");
+                setSnackbar({
+                    open: true,
+                    message: error.response.data.detail || "Failed to save complaint.",
+                    severity: "error",
+                });
             } else {
-                alert("Failed to save complaint.");
+                setSnackbar({
+                    open: true,
+                    message: "Failed to save complaint.",
+                    severity: "error",
+                });
             }
-
         } finally {
-
             setSaving(false);
-
         }
-
     };
-
     return (
-
         <Box>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() =>
+                    setSnackbar((prev) => ({
+                        ...prev,
+                        open: false,
+                    }))
+                }
+                anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                }}
+            >
+                <Alert
+                    onClose={() =>
+                        setSnackbar((prev) => ({
+                            ...prev,
+                            open: false,
+                        }))
+                    }
+                    severity={snackbar.severity}
+                    variant="filled"
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
 
             <Typography
                 variant="h5"
@@ -182,8 +194,6 @@ ${formData.complaint_description}
 
                 <PDFUploader
                     setFormData={setFormData}
-                    setAnalysisResult={setAnalysisResult}
-                    setAIResult={setAIResult}
                     setPdfAnalyzed={setPdfAnalyzed}
                 />
 
@@ -294,5 +304,4 @@ ${formData.complaint_description}
 
     );
 }
-
 export default ComplaintForm;

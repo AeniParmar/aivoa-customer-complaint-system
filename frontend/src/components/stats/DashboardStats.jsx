@@ -9,7 +9,7 @@ import {
 
 import { getComplaints } from "../../services/complaintService";
 
-function DashboardStats() {
+function DashboardStats({ refreshTrigger }) {
 
     const [stats, setStats] = useState({
         total: 0,
@@ -22,7 +22,7 @@ function DashboardStats() {
 
         loadStats();
 
-    }, []);
+    }, [refreshTrigger]);
 
     const loadStats = async () => {
 

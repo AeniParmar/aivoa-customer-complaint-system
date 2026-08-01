@@ -23,7 +23,7 @@ import {
     getComplaints,
 } from "../../services/complaintService";
 
-function ComplaintHistory() {
+function ComplaintHistory({ refreshTrigger }) {
 
     const [complaints, setComplaints] = useState([]);
     const [filteredComplaints, setFilteredComplaints] = useState([]);
@@ -55,7 +55,7 @@ function ComplaintHistory() {
 
         loadComplaints();
 
-    }, []);
+    }, [refreshTrigger]);
 
     useEffect(() => {
 

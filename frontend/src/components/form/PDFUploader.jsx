@@ -1,14 +1,17 @@
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Button } from "@mui/material";
 
+import { useDispatch } from "react-redux";
+
+import { setAIResult } from "../../redux/complaintSlice";
 import { uploadPDF } from "../../services/pdfService";
 
 function PDFUploader({
     setFormData,
-    setAnalysisResult,
-    setAIResult,
     setPdfAnalyzed,
 }) {
+
+    const dispatch = useDispatch();
 
     const handleUpload = async (event) => {
 
@@ -31,9 +34,7 @@ function PDFUploader({
                     result.complaint_description || "",
             });
 
-            setAnalysisResult(result);
-
-            setAIResult(result);
+            dispatch(setAIResult(result));
 
             setPdfAnalyzed(true);
 
