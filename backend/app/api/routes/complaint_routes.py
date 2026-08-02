@@ -13,6 +13,28 @@ def create_complaint(
     complaint_data: ComplaintCreate,
     db: Session = Depends(get_db),
 ):
+    if not complaint_data.force_save:
+        duplicate = complaint_service.find_duplicate(
+            db,
+            complaint_data.customer_name,
+            complaint_data.product_name,
+            complaint_data.batch_number,
+        )
+        if duplicate is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "message": "Duplicate complaint detected",
+                    "duplicate": {
+                        "customer_name": duplicate.customer_name,
+                        "product_name": duplicate.product_name,
+                        "batch_number": duplicate.batch_number,
+                        "created_at": duplicate.created_at.isoformat()
+                        if duplicate.created_at
+                        else None,
+                    },
+                },
+            )
     return complaint_service.create_complaint(db, complaint_data)
 
 

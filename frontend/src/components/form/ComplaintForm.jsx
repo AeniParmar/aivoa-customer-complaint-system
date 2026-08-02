@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import { analyzeComplaint } from "../../services/aiService";
 import { saveComplaint } from "../../services/complaintService";
+import ConfirmDialog from "../common/ConfirmDialog";
 import PDFUploader from "./PDFUploader";
 function ComplaintForm({
     setRefreshTrigger,
@@ -27,6 +28,7 @@ function ComplaintForm({
         (state) => state.complaint.aiResult
     );
     const [pdfAnalyzed, setPdfAnalyzed] = useState(false);
+    const [duplicateInfo, setDuplicateInfo] = useState(null);
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: "",
@@ -80,7 +82,7 @@ ${formData.complaint_description}
             setLoading(false);
         }
     };
-    const handleSave = async () => {
+    const handleSave = async (forceSave = false) => {
         if (!analysisResult) {
             setSnackbar({
                 open: true,
@@ -103,7 +105,10 @@ ${formData.complaint_description}
                 risk_assessment: analysisResult.risk_assessment || null,
                 status: "open",
             };
-            const savedComplaint = await saveComplaint(complaintData);
+            const savedComplaint = await saveComplaint(
+                complaintData,
+                { forceSave }
+            );
             console.log("Saved Complaint:", savedComplaint);
             setRefreshTrigger((prev) => prev + 1);
             setSnackbar({
@@ -122,15 +127,24 @@ ${formData.complaint_description}
             });
             dispatch(clearAIResult());
             setPdfAnalyzed(false);
+            setDuplicateInfo(null);
         } catch (error) {
             console.error(error);
             if (error.response) {
-                console.log(error.response.data);
-                setSnackbar({
-                    open: true,
-                    message: error.response.data.detail || "Failed to save complaint.",
-                    severity: "error",
-                });
+                if (error.response.status === 409) {
+                    const detail = error.response.data?.detail;
+                    setDuplicateInfo(
+                        detail?.duplicate || {
+                            message: detail || "Duplicate complaint detected",
+                        }
+                    );
+                } else {
+                    setSnackbar({
+                        open: true,
+                        message: error.response.data?.detail || "Failed to save complaint.",
+                        severity: "error",
+                    });
+                }
             } else {
                 setSnackbar({
                     open: true,
@@ -299,6 +313,44 @@ ${formData.complaint_description}
                 </Stack>
 
             </Stack>
+
+            <ConfirmDialog
+                open={Boolean(duplicateInfo)}
+                title="Duplicate Complaint Detected"
+                message="A complaint with the same customer, product, and batch number already exists."
+                confirmLabel="Save Anyway"
+                cancelLabel="Cancel"
+                confirmColor="warning"
+                onCancel={() => setDuplicateInfo(null)}
+                onConfirm={() => {
+                    setDuplicateInfo(null);
+                    handleSave(true);
+                }}
+            >
+                <Stack spacing={1} sx={{ mt: 2 }}>
+                    <Typography>
+                        <b>Customer Name :</b>{" "}
+                        {duplicateInfo?.customer_name || "—"}
+                    </Typography>
+
+                    <Typography>
+                        <b>Product Name :</b>{" "}
+                        {duplicateInfo?.product_name || "—"}
+                    </Typography>
+
+                    <Typography>
+                        <b>Batch Number :</b>{" "}
+                        {duplicateInfo?.batch_number || "—"}
+                    </Typography>
+
+                    <Typography>
+                        <b>Created Date :</b>{" "}
+                        {duplicateInfo?.created_at
+                            ? new Date(duplicateInfo.created_at).toLocaleDateString()
+                            : "—"}
+                    </Typography>
+                </Stack>
+            </ConfirmDialog>
 
         </Box>
 

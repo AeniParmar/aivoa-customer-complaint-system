@@ -1,7 +1,11 @@
 import api from "../api/axios";
 
-export const saveComplaint = async (complaintData) => {
-    const response = await api.post("/complaints", complaintData);
+export const saveComplaint = async (complaintData, options = {}) => {
+    const forceSave = options.forceSave || false;
+    const response = await api.post("/complaints", {
+        ...complaintData,
+        force_save: forceSave,
+    });
     return response.data;
 };
 

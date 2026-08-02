@@ -114,6 +114,42 @@ function AIResult() {
 
                 </Box>
 
+                <Box>
+
+                    <Typography fontWeight="bold">
+                        Complaint Summary
+                    </Typography>
+
+                    <Typography>
+                        {result.complaint_summary || "—"}
+                    </Typography>
+
+                </Box>
+
+                <Box>
+
+                    <Typography fontWeight="bold">
+                        Root Cause
+                    </Typography>
+
+                    <Typography>
+                        {result.root_cause || "—"}
+                    </Typography>
+
+                </Box>
+
+                <Box>
+
+                    <Typography fontWeight="bold">
+                        CAPA Recommendation
+                    </Typography>
+
+                    <Typography>
+                        {result.capa_recommendation || "—"}
+                    </Typography>
+
+                </Box>
+
             </Stack>
 
         </Box>

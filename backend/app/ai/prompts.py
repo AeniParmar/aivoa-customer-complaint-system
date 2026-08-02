@@ -45,6 +45,29 @@ Complaint data:
 """
 
 
+COMPLAINT_ENHANCEMENT_PROMPT = """You are a pharmaceutical customer complaint quality expert.
+
+Analyze the complaint data below and produce an AI-enhanced analysis.
+
+Return JSON only with this exact structure:
+{{
+  "complaint_summary": "A concise 1-3 sentence summary of the complaint",
+  "root_cause": "The most likely root cause of the complaint",
+  "capa_recommendation": "Recommended Corrective And Preventive Action (CAPA)"
+}}
+
+Rules:
+- Return valid JSON only. No markdown, no explanation.
+- If a field cannot be determined, use null instead of guessing.
+- complaint_summary: concise, factual, based only on the complaint data.
+- root_cause: consider product quality, packaging, handling, distribution, or usage factors.
+- capa_recommendation: actionable corrective and preventive actions.
+
+Complaint data:
+{complaint_data}
+"""
+
+
 COMPLAINT_UPDATE_PROMPT = """You are a customer complaint update assistant.
 
 Update the existing complaint record based on the user's instruction.
@@ -90,3 +113,7 @@ def build_update_prompt(existing_data: dict, user_instruction: str) -> str:
         existing_data=existing_data,
         user_instruction=user_instruction,
     )
+
+
+def build_enhancement_prompt(complaint_data: dict) -> str:
+    return COMPLAINT_ENHANCEMENT_PROMPT.format(complaint_data=complaint_data)

@@ -1,11 +1,31 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.complaint import Complaint
 from app.schemas.complaint import ComplaintCreate, ComplaintUpdate
 
 
+def find_duplicate(
+    db: Session,
+    customer_name: str,
+    product_name: str,
+    batch_number: str,
+) -> Complaint | None:
+    return (
+        db.query(Complaint)
+        .filter(
+            func.lower(Complaint.customer_name) == customer_name.strip().lower(),
+            func.lower(Complaint.product_name) == product_name.strip().lower(),
+            func.lower(Complaint.batch_number) == batch_number.strip().lower(),
+        )
+        .order_by(Complaint.created_at.desc())
+        .first()
+    )
+
+
 def create_complaint(db: Session, complaint_data: ComplaintCreate) -> Complaint:
-    complaint = Complaint(**complaint_data.model_dump())
+    data = complaint_data.model_dump(exclude={"force_save"})
+    complaint = Complaint(**data)
     db.add(complaint)
     db.commit()
     db.refresh(complaint)

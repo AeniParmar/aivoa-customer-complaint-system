@@ -18,6 +18,9 @@ class ComplaintCreate(BaseModel):
 
     status: str = Field(default="open", max_length=50)
 
+    # When True, bypasses duplicate-complaint detection (Save Anyway).
+    force_save: bool = False
+
 
 class ComplaintUpdate(BaseModel):
     customer_name: str | None = Field(default=None, min_length=1, max_length=255)

@@ -23,12 +23,16 @@ import {
     getComplaints,
 } from "../../services/complaintService";
 
+import ConfirmDialog from "../common/ConfirmDialog";
+
 function ComplaintHistory({ refreshTrigger }) {
 
     const [complaints, setComplaints] = useState([]);
     const [filteredComplaints, setFilteredComplaints] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+
+    const [deleteTarget, setDeleteTarget] = useState(null);
 
     const loadComplaints = async () => {
 
@@ -76,8 +80,6 @@ function ComplaintHistory({ refreshTrigger }) {
     }, [search, complaints]);
 
     const handleDelete = async (id) => {
-
-        if (!window.confirm("Delete this complaint?")) return;
 
         try {
 
@@ -226,7 +228,7 @@ function ComplaintHistory({ refreshTrigger }) {
                                     <IconButton
                                         color="error"
                                         onClick={() =>
-                                            handleDelete(complaint.id)
+                                            setDeleteTarget(complaint)
                                         }
                                     >
 
@@ -246,6 +248,21 @@ function ComplaintHistory({ refreshTrigger }) {
 
             </TableContainer>
 
+            <ConfirmDialog
+                open={Boolean(deleteTarget)}
+                title="Delete Complaint"
+                message={`Are you sure you want to delete this complaint by ${deleteTarget?.customer_name || ""}? This action cannot be undone.`}
+                confirmLabel="Delete"
+                onConfirm={() => {
+                    const id = deleteTarget?.id;
+                    setDeleteTarget(null);
+                    if (id) {
+                        handleDelete(id);
+                    }
+                }}
+                onCancel={() => setDeleteTarget(null)}
+            />
+
         </Box>
 
     );
@@ -253,3 +270,4 @@ function ComplaintHistory({ refreshTrigger }) {
 }
 
 export default ComplaintHistory;
+
