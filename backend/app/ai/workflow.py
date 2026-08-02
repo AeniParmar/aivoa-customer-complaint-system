@@ -1,5 +1,6 @@
 from typing import TypedDict
 
+import re
 from langgraph.graph import END, StateGraph
 
 from app.ai.groq_client import generate_response
@@ -32,6 +33,7 @@ def extract_complaint_node(state: ComplaintWorkflowState) -> dict:
         extracted = {
             "customer_name": None,
             "customer_email": None,
+            "customer_phone": None,
             "product_name": None,
             "batch_number": None,
             "quantity": 0,
@@ -40,8 +42,18 @@ def extract_complaint_node(state: ComplaintWorkflowState) -> dict:
             "parse_error": extracted.get("error"),
         }
 
-    return {"extracted": extracted}
+    # Recover customer phone if AI doesn't return it
+    if not extracted.get("customer_phone"):
+        match = re.search(
+            r"Customer Phone:\s*(.+)",
+            state["text"],
+            re.IGNORECASE,
+        )
 
+        if match:
+            extracted["customer_phone"] = match.group(1).strip()
+
+    return {"extracted": extracted}
 
 def risk_assessment_node(state: ComplaintWorkflowState) -> dict:
     risk = assess_risk(state["extracted"])
@@ -78,15 +90,54 @@ def ai_enhancement_node(state: ComplaintWorkflowState) -> dict:
 
 
 def return_final_json_node(state: ComplaintWorkflowState) -> dict:
+
+    extracted = state["extracted"]
+
+    required_fields = [
+        "customer_name",
+        "customer_email",
+        "customer_phone",
+        "product_name",
+        "batch_number",
+        "quantity",
+        "complaint_description",
+    ]
+
+    missing_fields = []
+    completed = 0
+
+    for field in required_fields:
+        value = extracted.get(field)
+
+        if value in [None, "", 0]:
+            missing_fields.append(field.replace("_", " ").title())
+        else:
+            completed += 1
+
+    completeness_score = int((completed / len(required_fields)) * 100)
+
+    if completeness_score == 100:
+        status = "Complete"
+    elif completeness_score >= 70:
+        status = "Almost Complete"
+    else:
+        status = "Incomplete"
+
     result = {
-        **state["extracted"],
+        **extracted,
         "severity": state["severity"],
         "risk_assessment": state["risk_assessment"],
         "next_action": state["next_action"],
+
         "complaint_summary": state["complaint_summary"],
         "root_cause": state["root_cause"],
         "capa_recommendation": state["capa_recommendation"],
+
+        "completeness_score": completeness_score,
+        "missing_fields": missing_fields,
+        "completeness_status": status,
     }
+
     return {"result": result}
 
 

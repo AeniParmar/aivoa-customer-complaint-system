@@ -6,6 +6,7 @@ Return JSON only with this exact structure:
 {{
   "customer_name": "string or null",
   "customer_email": "string or null",
+  "customer_phone": "string or null",
   "product_name": "string or null",
   "batch_number": "string or null",
   "quantity": 0,
@@ -16,6 +17,7 @@ Return JSON only with this exact structure:
 Rules:
 - Return valid JSON only. No markdown, no explanation.
 - Use null for missing fields.
+- Extract customer_phone exactly as provided in the complaint text if present; otherwise return null.
 - quantity must be a number (use 0 if unknown).
 - category examples: Quality Issue, Packaging Defect, Delivery Delay, Wrong Product, Contamination, Other.
 
@@ -76,6 +78,7 @@ Return JSON only with the full updated complaint object using this structure:
 {{
   "customer_name": "string or null",
   "customer_email": "string or null",
+  "customer_phone": "string or null",
   "product_name": "string or null",
   "batch_number": "string or null",
   "quantity": 0,

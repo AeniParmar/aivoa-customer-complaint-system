@@ -150,6 +150,53 @@ function AIResult() {
 
                 </Box>
 
+                <Divider sx={{ my: 2 }} />
+
+                <Box>
+
+                    <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                    >
+                        Complaint Completeness
+                    </Typography>
+
+                    <Typography sx={{ mt: 1 }}>
+                        <b>Score:</b> {result.completeness_score}%
+                    </Typography>
+
+                    <Typography sx={{ mt: 1 }}>
+                        <b>Status:</b> {result.completeness_status}
+                    </Typography>
+
+                    <Typography sx={{ mt: 2, mb: 1 }}>
+                        <b>Missing Fields</b>
+                    </Typography>
+
+                    {result.missing_fields?.length > 0 ? (
+
+                        <ul style={{ marginTop: 0, paddingLeft: "20px" }}>
+
+                            {result.missing_fields.map((field, index) => (
+
+                                <li key={index}>
+                                    {field}
+                                </li>
+
+                            ))}
+
+                        </ul>
+
+                    ) : (
+
+                        <Typography color="success.main">
+                            ✅ All required fields are available.
+                        </Typography>
+
+                    )}
+
+                </Box>
+
             </Stack>
 
         </Box>
