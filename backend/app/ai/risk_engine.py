@@ -2,12 +2,10 @@ from app.ai.groq_client import generate_response
 from app.ai.parser import parse_ai_json
 from app.ai.prompts import build_risk_assessment_prompt
 
-
 def assess_risk(complaint: dict) -> dict:
     prompt = build_risk_assessment_prompt(complaint)
     response = generate_response(prompt)
     parsed = parse_ai_json(response)
-
     if "error" in parsed:
         return {
             "severity": "Medium",

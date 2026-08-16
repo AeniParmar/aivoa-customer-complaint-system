@@ -5,6 +5,7 @@ import {
     CardContent,
     Grid,
     Typography,
+    Box,
 } from "@mui/material";
 
 import { getComplaints } from "../../services/complaintService";
@@ -14,14 +15,11 @@ function DashboardStats({ refreshTrigger }) {
     const [stats, setStats] = useState({
         total: 0,
         open: 0,
-        resolved: 0,
         high: 0,
     });
 
     useEffect(() => {
-
         loadStats();
-
     }, [refreshTrigger]);
 
     const loadStats = async () => {
@@ -32,10 +30,13 @@ function DashboardStats({ refreshTrigger }) {
 
             setStats({
                 total: complaints.length,
-                open: complaints.filter(c => c.status === "open").length,
-                resolved: complaints.filter(c => c.status === "resolved").length,
-                high: complaints.filter(c =>
-                    c.severity?.toLowerCase() === "high"
+
+                open: complaints.filter(
+                    c => c.status === "open"
+                ).length,
+
+                high: complaints.filter(
+                    c => c.severity?.toLowerCase() === "high"
                 ).length,
             });
 
@@ -44,54 +45,106 @@ function DashboardStats({ refreshTrigger }) {
             console.error(error);
 
         }
-
     };
 
     const cards = [
         {
             title: "Total Complaints",
             value: stats.total,
+            description: "All complaints received",
         },
         {
-            title: "Open",
+            title: "Open Complaints",
             value: stats.open,
+            description: "Requiring attention",
         },
         {
             title: "High Severity",
             value: stats.high,
-        },
-        {
-            title: "Resolved",
-            value: stats.resolved,
+            description: "High-risk complaints",
         },
     ];
 
     return (
 
-        <Grid container spacing={3} mb={4}>
+        <Grid
+            container
+            spacing={2}
+            sx={{
+                mb: 2.5,
+            }}
+        >
 
             {cards.map((card) => (
 
                 <Grid
                     key={card.title}
-                    size={{ xs: 12, sm: 6, md: 3 }}
+                    size={{
+                        xs: 12,
+                        sm: 4,
+                    }}
                 >
 
-                    <Card elevation={4}>
+                    <Card
+                        elevation={2}
+                        sx={{
+                            borderRadius: 2,
+                            height: 105,
+                        }}
+                    >
 
-                        <CardContent>
+                        <CardContent
+                            sx={{
+                                height: "100%",
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                                px: 2.5,
+                                py: 1.5,
+
+                                "&:last-child": {
+                                    pb: 1.5,
+                                },
+                            }}
+                        >
 
                             <Typography
+                                variant="body2"
                                 color="text.secondary"
+                                fontWeight={600}
                             >
                                 {card.title}
                             </Typography>
 
-                            <Typography
-                                variant="h4"
-                                fontWeight="bold"
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "baseline",
+                                    gap: 1,
+                                    my: 0.3,
+                                }}
                             >
-                                {card.value}
+
+                                <Typography
+                                    sx={{
+                                        fontSize: "1.8rem",
+                                        lineHeight: 1,
+                                        fontWeight: 700,
+                                        color: "#111827",
+                                    }}
+                                >
+                                    {card.value}
+                                </Typography>
+
+                            </Box>
+
+
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                            >
+                                {card.description}
                             </Typography>
 
                         </CardContent>
@@ -103,9 +156,7 @@ function DashboardStats({ refreshTrigger }) {
             ))}
 
         </Grid>
-
     );
-
 }
 
 export default DashboardStats;
